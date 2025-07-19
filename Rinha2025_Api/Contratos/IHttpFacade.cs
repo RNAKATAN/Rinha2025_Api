@@ -2,6 +2,6 @@
 {
     public interface IHttpFacade
     {
-        Task ExecutaTarefa();
+        Task ExecutaTarefa( HttpRequestMessage httpRequestMessage);
     }
 }

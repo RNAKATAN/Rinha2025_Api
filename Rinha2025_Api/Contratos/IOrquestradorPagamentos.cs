@@ -2,7 +2,7 @@
 
 namespace Rinha2025_Api.Contratos
 {
-    public interface IExecutaPagamentoUseCase
+    public interface IOrquestradorPagamentos
     {
         Task Processa(PaymentInput payment);
     }
