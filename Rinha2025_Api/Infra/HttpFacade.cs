@@ -13,7 +13,7 @@ namespace Rinha2025_Api.Infra
         {
                 _httpClient = httpClient;
         }
-        public async Task ExecutaTarefa(HttpRequestMessage httpRequestMessage)
+        public async Task<HttpResponseMessage> ExecutaTarefa(HttpRequestMessage httpRequestMessage)
         {
             
             HttpResponseMessage httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
@@ -28,6 +28,8 @@ namespace Rinha2025_Api.Infra
                 throw new HttpRequestException(
                     $"Erro na requisição: {(int)httpResponseMessage.StatusCode} - {httpResponseMessage.ReasonPhrase}. Detalhes: {errorContent}");
             }
+
+            return httpResponseMessage;
 
         }
     }

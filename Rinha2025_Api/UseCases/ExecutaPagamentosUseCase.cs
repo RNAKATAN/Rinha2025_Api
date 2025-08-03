@@ -7,11 +7,12 @@ namespace Rinha2025_Api.UseCases
 
         public required string TipoPaymentProcessor { get; set; }
 
-        public Task Executa()
+        public Task Processa(HttpRequestMessage httpRequestMessage)
         {
 
 
             return Task.FromResult(0);
         }
+
     }
 }

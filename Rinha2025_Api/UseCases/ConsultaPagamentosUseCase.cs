@@ -1,4 +1,5 @@
 ﻿using Rinha2025_Api.Contratos;
+using Rinha2025_Api.Infra;
 
 namespace Rinha2025_Api.UseCases
 {
@@ -12,7 +13,24 @@ namespace Rinha2025_Api.UseCases
         }
         public async Task ConsultarPagamentosPeriodo(string from, string to)
         {
-            await _httpFacade.ExecutaTarefa();
+            string[] PaymentProcessors = ["", ""];
+            decimal TotalAmount = 0;
+
+            foreach (var processor in PaymentProcessors)
+            {
+                string urlCompleta = $"CONSULTA?from={from}&to={to}";
+
+                HttpRequestMessage request = new HttpRequestMessageBuilder()
+                    .AddUrl(urlCompleta)
+                    .AddMethod(HttpMethod.Get)
+                    .Build();
+
+                await _httpFacade.ExecutaTarefa(request);
+
+                TotalAmount = TotalAmount + 1;
+            }
+
+
         }
     }
 }

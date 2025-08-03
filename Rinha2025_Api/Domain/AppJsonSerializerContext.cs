@@ -4,13 +4,8 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Rinha2025_Api.Domain
 {
-
-    public class PaymentInput
-    {
-        public string? CorrelationId { get; set; }
-        public decimal Amount { get; set; }
-
+    [JsonSerializable(typeof(PaymentInput))]
+    public partial class AppJsonSerializerContext : JsonSerializerContext
+    { 
     }
-
-
 }

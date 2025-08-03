@@ -12,34 +12,50 @@ namespace Rinha2025_Api
         {
             var builder = WebApplication.CreateSlimBuilder(args);
 
-
-            builder.Services.ConfigureHttpJsonOptions(options =>
+            // Configure o contexto de source generation
+            builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
             {
                 options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
             });
+
+
 
             builder.Services.AddServices();
 
             var app = builder.Build();
 
-            var orquestradorPagamentos = app.Services.GetRequiredService<IOrquestradorPagamentos>();
-            var consultaPagamentosUseCase = app.Services.GetRequiredService<IConsultaPagamentosUseCase>();
-
-            var api = app.MapGroup("/");
-            api.MapPost("/payments", async (PaymentInput paymentInput) =>
+            using (var scopeGet = app.Services.CreateScope())
             {
-                await orquestradorPagamentos.Processa(paymentInput);
-                return Results.Ok();
+                var consultaPagamentosUseCase = scopeGet.ServiceProvider.GetRequiredService<IConsultaPagamentosUseCase>();
+
+                var apiGet = app.MapGroup("/");
+                apiGet.MapGet("/payments-summary", async (string from, string to) =>
+                {
+                    await consultaPagamentosUseCase.ConsultarPagamentosPeriodo(from, to);
+                    return Results.Ok();
+                }
+                );
+
             }
-            );
 
-
-            api.MapGet("/payments-summary", async (string from, string to) =>
+            using (var scopePost = app.Services.CreateScope())
             {
-                await consultaPagamentosUseCase.ConsultarPagamentosPeriodo(from, to);
-                return Results.Ok();
+                var orquestradorPagamentos = scopePost.ServiceProvider.GetRequiredService<IOrquestradorPagamentos>();
+
+
+                var api = app.MapGroup("/");
+                api.MapPost("/payments", async (PaymentInput paymentInput) =>
+                {
+                    await orquestradorPagamentos.Processa(paymentInput);
+                    return Results.Ok();
+                }
+                );
             }
-            );
+
+
+
+
+
 
 
             //var sampleTodos = new Todo[] {
@@ -61,11 +77,4 @@ namespace Rinha2025_Api
         }
     }
 
-    public record Todo(int Id, string? Title, DateOnly? DueBy = null, bool IsComplete = false);
-
-    [JsonSerializable(typeof(Todo[]))]
-    internal partial class AppJsonSerializerContext : JsonSerializerContext
-    {
-
-    }
 }
