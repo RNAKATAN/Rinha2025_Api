@@ -29,13 +29,13 @@ namespace Rinha2025_Api.UseCases
         {
             string urlProcessor = string.Empty;
 
-            if (!_memoryCache.TryGetValue(Constantes.Constantes.CacheKey, out var result))
+            if (!_memoryCache.TryGetValue(Constantes.Constantes.CacheKeyDefaultProcessor, out var result))
             {
 
                 HttpRequestMessage requestMessageHealthCheck = new HttpRequestMessageBuilder()
                     //.AddUrl("http://payment-processor:8001/payments/service-health")
                     .AddUrl("http://localhost:8001/payments/service-health")
-                    .AddMethod(HttpMethod.Get)                    
+                    .AddMethod(HttpMethod.Get)
                     .Build();
 
                 HealthCheck healthCheck = await _httpFacade.ExecutaTarefa(requestMessageHealthCheck);
@@ -43,37 +43,112 @@ namespace Rinha2025_Api.UseCases
 
                 paymentInput.RequestedAt = DateTime.UtcNow.ToString();
 
-                if (!healthCheck.Failing && healthCheck.MinResponseTime > 5)
+                if (!healthCheck.Failing && healthCheck.MinResponseTime < 30)
                 {
                     //urlProcessor = "http://payment-processor:8001/payments";
                     urlProcessor = "http://localhost:8001/payments";
+
+                    HttpRequestMessage request = new HttpRequestMessageBuilder()
+                        .AddUrl(urlProcessor)
+                        //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddMethod(HttpMethod.Post)
+                        .Build();
+                    var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
+
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
+
+                    _memoryCache.Set(Constantes.Constantes.CacheKeyDefaultProcessor, "1", cacheEntryOptions);
+
                 }
-                else
-                {
-                    //urlProcessor = "http://payment-processor:8002/payments";
-                    urlProcessor = "http://localhost:8002/payments";
-                }
 
-                HttpRequestMessage request = new HttpRequestMessageBuilder()
-                    .AddUrl(urlProcessor)
-                    //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
-                    .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
-                    .AddMethod(HttpMethod.Post)
-                    .Build();
-
-                var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
-
-                                
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
-
-                _memoryCache.Set(Constantes.Constantes.CacheKey, "1", cacheEntryOptions);
             }
             else
             {
+                if (result == "1")
+                {
+                    //urlProcessor = "http://payment-processor:8001/payments";
+                    urlProcessor = "http://localhost:8001/payments";
+
+                    HttpRequestMessage request = new HttpRequestMessageBuilder()
+                        .AddUrl(urlProcessor)
+                        //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddMethod(HttpMethod.Post)
+                        .Build();
+                    var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
+                }
+            }
+
+
+            if (!_memoryCache.TryGetValue(Constantes.Constantes.CacheKeyFallbackProcessor, out var resultFallback))
+            {
+
+                HttpRequestMessage requestMessageHealthCheck = new HttpRequestMessageBuilder()
+                    //.AddUrl("http://payment-processor:8001/payments/service-health")
+                    .AddUrl("http://localhost:8001/payments/service-health")
+                    .AddMethod(HttpMethod.Get)
+                    .Build();
+
+                HealthCheck healthCheck = await _httpFacade.ExecutaTarefa(requestMessageHealthCheck);
+
+
+                paymentInput.RequestedAt = DateTime.UtcNow.ToString();
+
+                if (!healthCheck.Failing && healthCheck.MinResponseTime < 30)
+                {
+                    //urlProcessor = "http://payment-processor:8001/payments";
+                    urlProcessor = "http://localhost:8001/payments";
+
+                    HttpRequestMessage request = new HttpRequestMessageBuilder()
+                        .AddUrl(urlProcessor)
+                        //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddMethod(HttpMethod.Post)
+                        .Build();
+                    var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
+
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
+
+                    _memoryCache.Set(Constantes.Constantes.CacheKeyFallbackProcessor, "1", cacheEntryOptions);
+                }
 
             }
+
+            else
+            {
+                if (resultFallback == "1")
+                {
+                    //urlProcessor = "http://payment-processor:8002/payments";
+                    urlProcessor = "http://localhost:8002/payments";
+
+                    HttpRequestMessage request = new HttpRequestMessageBuilder()
+                        .AddUrl(urlProcessor)
+                        //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+                        .AddMethod(HttpMethod.Post)
+                        .Build();
+                    var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
+                }
+            }
+
+
+            //HttpRequestMessage request = new HttpRequestMessageBuilder()
+            //    .AddUrl(urlProcessor)
+            //    //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+            //    .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
+            //    .AddMethod(HttpMethod.Post)
+            //    .Build();
+
+            //var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
+
+
+
+
+           
+
 
 
 
