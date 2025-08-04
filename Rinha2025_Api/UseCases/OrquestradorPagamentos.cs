@@ -35,6 +35,7 @@ namespace Rinha2025_Api.UseCases
                 HttpRequestMessage requestMessageHealthCheck = new HttpRequestMessageBuilder()
                     //.AddUrl("http://payment-processor:8001/payments/service-health")
                     .AddUrl("http://localhost:8001/payments/service-health")
+                    .AddUrl(Constantes.Constantes.URL_DEFAULT_PROCESSOR_HEALTHCHECK)
                     .AddMethod(HttpMethod.Get)
                     .Build();
 
@@ -47,6 +48,7 @@ namespace Rinha2025_Api.UseCases
                 {
                     //urlProcessor = "http://payment-processor:8001/payments";
                     urlProcessor = "http://localhost:8001/payments";
+                    urlProcessor = Constantes.Constantes.URL_DEFAULT_PROCESSOR;
 
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
                         .AddUrl(urlProcessor)
@@ -70,6 +72,7 @@ namespace Rinha2025_Api.UseCases
                 {
                     //urlProcessor = "http://payment-processor:8001/payments";
                     urlProcessor = "http://localhost:8001/payments";
+                    urlProcessor = Constantes.Constantes.URL_DEFAULT_PROCESSOR;
 
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
                         .AddUrl(urlProcessor)
@@ -86,8 +89,9 @@ namespace Rinha2025_Api.UseCases
             {
 
                 HttpRequestMessage requestMessageHealthCheck = new HttpRequestMessageBuilder()
-                    //.AddUrl("http://payment-processor:8001/payments/service-health")
-                    .AddUrl("http://localhost:8001/payments/service-health")
+                    //.AddUrl("http://payment-processor:8002/payments/service-health")
+                    .AddUrl(Constantes.Constantes.URL_FALLBACK_PROCESSOR_HEALTHCHECK)
+                    .AddUrl("http://localhost:8002/payments/service-health")
                     .AddMethod(HttpMethod.Get)
                     .Build();
 
@@ -98,8 +102,9 @@ namespace Rinha2025_Api.UseCases
 
                 if (!healthCheck.Failing && healthCheck.MinResponseTime < 30)
                 {
-                    //urlProcessor = "http://payment-processor:8001/payments";
-                    urlProcessor = "http://localhost:8001/payments";
+                    //urlProcessor = "http://payment-processor:8002/payments";
+                    urlProcessor = "http://localhost:8002/payments";
+                    urlProcessor = Constantes.Constantes.URL_FALLBACK_PROCESSOR;
 
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
                         .AddUrl(urlProcessor)
@@ -123,6 +128,7 @@ namespace Rinha2025_Api.UseCases
                 {
                     //urlProcessor = "http://payment-processor:8002/payments";
                     urlProcessor = "http://localhost:8002/payments";
+                    urlProcessor = Constantes.Constantes.URL_FALLBACK_PROCESSOR;
 
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
                         .AddUrl(urlProcessor)
