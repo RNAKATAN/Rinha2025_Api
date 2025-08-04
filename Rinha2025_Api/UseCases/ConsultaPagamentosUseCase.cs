@@ -1,34 +1,53 @@
 ﻿using Rinha2025_Api.Contratos;
+using Rinha2025_Api.Domain;
 using Rinha2025_Api.Infra;
 
 namespace Rinha2025_Api.UseCases
 {
     public class ConsultaPagamentosUseCase : IConsultaPagamentosUseCase
     {
-        IHttpFacade _httpFacade;
+        IHttpFacade<PaymentProcessor> _httpFacade;
 
-        public ConsultaPagamentosUseCase(IHttpFacade httpFacade)
+        public ConsultaPagamentosUseCase(IHttpFacade<PaymentProcessor> httpFacade)
         {
             _httpFacade = httpFacade;
         }
-        public async Task ConsultarPagamentosPeriodo(string from, string to)
+        public async Task<PaymentsSummary> ConsultarPagamentosPeriodo(string from, string to)
         {
-            string[] PaymentProcessors = ["", ""];
-            decimal TotalAmount = 0;
+            string[] PaymentProcessors = ["http://localhost:8001/", "http://localhost:8002/"];
+            Default respostaDefault;
+            Fallback respostaFallback;
+            PaymentsSummary paymentsSummary = new ();
 
             foreach (var processor in PaymentProcessors)
             {
-                string urlCompleta = $"CONSULTA?from={from}&to={to}";
+                string urlCompleta = $"{processor}admin/payments-summary?from={from}&to={to}";
 
                 HttpRequestMessage request = new HttpRequestMessageBuilder()
                     .AddUrl(urlCompleta)
+                    .AddHeaders(new Dictionary<string, string> {
+                        { "X-Rinha-Token", "123"}  
+                        })
                     .AddMethod(HttpMethod.Get)
                     .Build();
 
-                await _httpFacade.ExecutaTarefa(request);
+                if (processor == "http://localhost:8001/")
+                {
+                    respostaDefault = (Default) await _httpFacade.ExecutaTarefa(request);
 
-                TotalAmount = TotalAmount + 1;
+                    paymentsSummary.Default = respostaDefault;
+                }
+                else
+                {
+                    respostaFallback = (Fallback)await _httpFacade.ExecutaTarefa(request);
+                    paymentsSummary.Fallback = respostaFallback;
+                }
+                                               
             }
+
+            return paymentsSummary;
+
+
 
 
         }

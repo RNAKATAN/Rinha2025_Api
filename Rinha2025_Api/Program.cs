@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Routing.Constraints;
+using Microsoft.OpenApi.Models;
 using Rinha2025_Api.Contratos;
 using Rinha2025_Api.DependencyInjection;
 using Rinha2025_Api.Domain;
@@ -22,7 +24,39 @@ namespace Rinha2025_Api
 
             builder.Services.AddServices();
 
+            // Adicione o serviço Swagger
+            builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Rinha 2025 api",
+                    Version = "v1",
+                    Description = "API para testa rinha",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Your Name",
+                        Email = "your.email@example.com",
+                        Url = new Uri("https://yourwebsite.com")
+                    }
+                });
+            } );
+
+            builder.Services.Configure<RouteOptions>(options => options.SetParameterPolicy<RegexInlineRouteConstraint>("regex"));
+
+
             var app = builder.Build();
+
+            // Configure o middleware Swagger
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sua API V1"); // Nome e local do endpoint Swagger
+                });
+            }
 
             using (var scopeGet = app.Services.CreateScope())
             {

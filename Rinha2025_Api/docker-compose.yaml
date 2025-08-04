@@ -19,7 +19,7 @@ services:
                     cpus: "0.15"
                     memory: "15MB"     
     backend1:
-        image: 'rnakatan/rinha2025api:1.0'
+        image: 'rnakatan/rinha2025api'
         container_name: backend1
         networks:
             - backend
@@ -30,7 +30,7 @@ services:
                     cpus: "0.15"
                     memory: "15MB"       
     backend2:
-        image: 'rnakatan/rinha2025api:1.0'
+        image: 'rnakatan/rinha2025api'
         container_name: backend2
         networks:
             - backend

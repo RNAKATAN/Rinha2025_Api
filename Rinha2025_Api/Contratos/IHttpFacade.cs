@@ -1,7 +1,7 @@
 ﻿namespace Rinha2025_Api.Contratos
 {
-    public interface IHttpFacade
+    public interface IHttpFacade<T> where T : class
     {
-        Task<HttpResponseMessage> ExecutaTarefa( HttpRequestMessage httpRequestMessage);
+        Task<T> ExecutaTarefa(HttpRequestMessage httpRequestMessage);
     }
 }

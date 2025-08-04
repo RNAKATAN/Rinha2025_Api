@@ -1,8 +1,11 @@
 ﻿using Rinha2025_Api.Contratos;
+using Rinha2025_Api.Domain;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Rinha2025_Api.Infra
 {
-    public class HttpFacade : IHttpFacade
+    public class HttpFacade<T> : IHttpFacade<T> where T : class
     {
 
         private HttpClient _httpClient;
@@ -13,14 +16,22 @@ namespace Rinha2025_Api.Infra
         {
                 _httpClient = httpClient;
         }
-        public async Task<HttpResponseMessage> ExecutaTarefa(HttpRequestMessage httpRequestMessage)
+        public async Task<T> ExecutaTarefa(HttpRequestMessage httpRequestMessage)
         {
-            
+            T objeto;
+
+            var options = new JsonSerializerOptions
+            {
+                TypeInfoResolver = AppJsonSerializerContext.Default
+            };
+
             HttpResponseMessage httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
 
             if (httpResponseMessage.IsSuccessStatusCode)
             {
-                var content = httpRequestMessage.Content.ReadAsStringAsync();
+                var content = await httpResponseMessage.Content.ReadAsStringAsync();
+
+                objeto = JsonSerializer.Deserialize<T>(content, options);
             }
             else
             {
@@ -29,7 +40,7 @@ namespace Rinha2025_Api.Infra
                     $"Erro na requisição: {(int)httpResponseMessage.StatusCode} - {httpResponseMessage.ReasonPhrase}. Detalhes: {errorContent}");
             }
 
-            return httpResponseMessage;
+            return objeto;
 
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Rinha2025_Api.Contratos;
+using Rinha2025_Api.Domain;
 using Rinha2025_Api.Infra;
 using Rinha2025_Api.UseCases;
 
@@ -16,10 +17,13 @@ namespace Rinha2025_Api.DependencyInjection
             services.AddMemoryCache();
 
 
-            services.AddHttpClient<IHttpFacade, HttpFacade>(client =>
-                client.BaseAddress = new Uri("http://payment-processor-default:8080")
-                );
-               // .AddHttpMessageHandler();
+            services.AddHttpClient<IHttpFacade<PaymentResponse>, HttpFacade<PaymentResponse>>();
+
+            services.AddHttpClient<IHttpFacade<HealthCheck>, HttpFacade<HealthCheck>>();
+
+            services.AddHttpClient<IHttpFacade<PaymentProcessor>, HttpFacade<PaymentProcessor>>();
+
+            // .AddHttpMessageHandler();
 
             return services;
         }

@@ -4,7 +4,9 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Rinha2025_Api.Domain
 {
+    [JsonSerializable(typeof(HealthCheck))]
     [JsonSerializable(typeof(PaymentInput))]
+    [JsonSerializable(typeof(PaymentProcessorInput))]
     public partial class AppJsonSerializerContext : JsonSerializerContext
     { 
     }

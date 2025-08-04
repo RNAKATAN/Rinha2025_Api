@@ -1,7 +1,9 @@
-﻿namespace Rinha2025_Api.Contratos
+﻿using Rinha2025_Api.Domain;
+
+namespace Rinha2025_Api.Contratos
 {
     public interface IConsultaPagamentosUseCase
     {
-        Task ConsultarPagamentosPeriodo(string from, string to);
+        Task<PaymentsSummary> ConsultarPagamentosPeriodo(string from, string to);
     }
 }
