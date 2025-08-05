@@ -6,7 +6,7 @@
         public string? CorrelationId { get; set; }
         public decimal Amount { get; set; }
 
-        public string? RequestedAt { get; set; }
+        public string? RequestedAt { get; set; } = DateTime.UtcNow.ToString();
 
     }    
 }

@@ -16,7 +16,7 @@ services:
         deploy:
             resources:
                 limits:
-                    cpus: "0.15"
+                    cpus: "0.30"
                     memory: "15MB"     
     backend1:
         image: 'rnakatan/rinha2025api'
@@ -24,10 +24,13 @@ services:
         networks:
             - backend
             - payment-processor 
+    environment:      
+      - PROCESSOR_DEFAULT_URL_BASE=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK_URL_BASE=http://payment-processor-fallback:8080            
         deploy:
             resources:
                 limits:
-                    cpus: "0.15"
+                    cpus: "0.65"
                     memory: "15MB"       
     backend2:
         image: 'rnakatan/rinha2025api'
@@ -35,10 +38,13 @@ services:
         networks:
             - backend
             - payment-processor
+    environment:      
+      - PROCESSOR_DEFAULT_URL_BASE=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK_URL_BASE=http://payment-processor-fallback:8080               
         deploy:
             resources:
                 limits:
-                    cpus: "0.15"
+                    cpus: "0.65"
                     memory: "15MB"       
 networks:
   backend:

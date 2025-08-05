@@ -27,59 +27,43 @@ namespace Rinha2025_Api.UseCases
 
         public async Task Processa(PaymentInput paymentInput)
         {
-            string urlProcessor = string.Empty;
+            string urlProcessorDefault = $"{Environment.GetEnvironmentVariable("PROCESSOR_DEFAULT_URL")!}/payments";
+            string urlProcessorFallback = $"{Environment.GetEnvironmentVariable("PROCESSOR_FALLBACK_URL")!}/payments";
 
             if (!_memoryCache.TryGetValue(Constantes.Constantes.CacheKeyDefaultProcessor, out var result))
             {
 
-                HttpRequestMessage requestMessageHealthCheck = new HttpRequestMessageBuilder()
-                    //.AddUrl("http://payment-processor:8001/payments/service-health")
-                    .AddUrl("http://localhost:8001/payments/service-health")
-                    .AddUrl(Constantes.Constantes.URL_DEFAULT_PROCESSOR_HEALTHCHECK)
-                    .AddMethod(HttpMethod.Get)
-                    .Build();
-
-                HealthCheck healthCheck = await _httpFacade.ExecutaTarefa(requestMessageHealthCheck);
-
-
-                paymentInput.RequestedAt = DateTime.UtcNow.ToString();
+                HealthCheck healthCheck = await BuscaHealthCheckProcessor(urlProcessorDefault);
+                               
 
                 if (!healthCheck.Failing && healthCheck.MinResponseTime < 30)
                 {
-                    //urlProcessor = "http://payment-processor:8001/payments";
-                    urlProcessor = "http://localhost:8001/payments";
-                    urlProcessor = Constantes.Constantes.URL_DEFAULT_PROCESSOR;
+
 
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
-                        .AddUrl(urlProcessor)
+                        .AddUrl(urlProcessorDefault)
                         //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddMethod(HttpMethod.Post)
                         .Build();
                     var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
 
-                    var cacheEntryOptions = new MemoryCacheEntryOptions()
-                            .SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
-
-                    _memoryCache.Set(Constantes.Constantes.CacheKeyDefaultProcessor, "1", cacheEntryOptions);
+                    SetaCacheHealthCheck("DEFAULT");
 
                 }
 
             }
             else
             {
-                if (result == "1")
-                {
-                    //urlProcessor = "http://payment-processor:8001/payments";
-                    urlProcessor = "http://localhost:8001/payments";
-                    urlProcessor = Constantes.Constantes.URL_DEFAULT_PROCESSOR;
-
+                if ((string)result! == "1")
+                {          
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
-                        .AddUrl(urlProcessor)
+                        .AddUrl(urlProcessorDefault)
                         //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddMethod(HttpMethod.Post)
                         .Build();
+
                     var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
                 }
             }
@@ -88,50 +72,31 @@ namespace Rinha2025_Api.UseCases
             if (!_memoryCache.TryGetValue(Constantes.Constantes.CacheKeyFallbackProcessor, out var resultFallback))
             {
 
-                HttpRequestMessage requestMessageHealthCheck = new HttpRequestMessageBuilder()
-                    //.AddUrl("http://payment-processor:8002/payments/service-health")
-                    .AddUrl(Constantes.Constantes.URL_FALLBACK_PROCESSOR_HEALTHCHECK)
-                    .AddUrl("http://localhost:8002/payments/service-health")
-                    .AddMethod(HttpMethod.Get)
-                    .Build();
+                HealthCheck healthCheck = await BuscaHealthCheckProcessor(urlProcessorFallback);
 
-                HealthCheck healthCheck = await _httpFacade.ExecutaTarefa(requestMessageHealthCheck);
-
-
-                paymentInput.RequestedAt = DateTime.UtcNow.ToString();
 
                 if (!healthCheck.Failing && healthCheck.MinResponseTime < 30)
                 {
-                    //urlProcessor = "http://payment-processor:8002/payments";
-                    urlProcessor = "http://localhost:8002/payments";
-                    urlProcessor = Constantes.Constantes.URL_FALLBACK_PROCESSOR;
 
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
-                        .AddUrl(urlProcessor)
+                        .AddUrl(urlProcessorFallback)
                         //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddMethod(HttpMethod.Post)
                         .Build();
                     var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
 
-                    var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
-
-                    _memoryCache.Set(Constantes.Constantes.CacheKeyFallbackProcessor, "1", cacheEntryOptions);
+                    SetaCacheHealthCheck("FALLBACK");
                 }
 
             }
 
             else
             {
-                if (resultFallback == "1")
+                if ((string)resultFallback! == "1")
                 {
-                    //urlProcessor = "http://payment-processor:8002/payments";
-                    urlProcessor = "http://localhost:8002/payments";
-                    urlProcessor = Constantes.Constantes.URL_FALLBACK_PROCESSOR;
-
                     HttpRequestMessage request = new HttpRequestMessageBuilder()
-                        .AddUrl(urlProcessor)
+                        .AddUrl(urlProcessorFallback)
                         //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
                         .AddMethod(HttpMethod.Post)
@@ -141,27 +106,28 @@ namespace Rinha2025_Api.UseCases
             }
 
 
-            //HttpRequestMessage request = new HttpRequestMessageBuilder()
-            //    .AddUrl(urlProcessor)
-            //    //.AddBody(JsonSerializer.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
-            //    .AddBody(JsonSerializerHelper<PaymentProcessorInput>.Serialize(ConverteEmPaymentProcessorInput(paymentInput)))
-            //    .AddMethod(HttpMethod.Post)
-            //    .Build();
-
-            //var respostaProcessamento = await _executaPagamentosUseCase.Processa(request);
-
-
-
-
-           
-
-
-
-
-
             Task.FromResult(0); 
         }
 
+        private void SetaCacheHealthCheck(string TipoProcessor)
+        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
+
+            if (TipoProcessor == "DEFAULT")   _memoryCache.Set(Constantes.Constantes.CacheKeyDefaultProcessor, "1", cacheEntryOptions);
+            if (TipoProcessor == "FALLBACK")   _memoryCache.Set(Constantes.Constantes.CacheKeyFallbackProcessor, "1", cacheEntryOptions);
+
+        }
+
+        private async Task <HealthCheck> BuscaHealthCheckProcessor(string urlProcessor)
+        {
+            HttpRequestMessage requestMessageHealthCheck = new HttpRequestMessageBuilder()
+            .AddUrl($"{urlProcessor}/service-health")
+            .AddMethod(HttpMethod.Get)
+            .Build();
+
+            return await _httpFacade.ExecutaTarefa(requestMessageHealthCheck);
+        }
 
         private PaymentProcessorInput ConverteEmPaymentProcessorInput(PaymentInput paymentInput)
         {

@@ -14,14 +14,14 @@ namespace Rinha2025_Api.UseCases
         }
         public async Task<PaymentsSummary> ConsultarPagamentosPeriodo(string from, string to)
         {
-            string[] PaymentProcessors = ["http://localhost:8001/", "http://localhost:8002/"];
+            string[] PaymentProcessors = [$"{Environment.GetEnvironmentVariable("PROCESSOR_DEFAULT_URL_BASE")}/admin/payments-summary", $"{Environment.GetEnvironmentVariable("PROCESSOR_FALLBACK_URL_BASE")}/admin/payments-summary"];
             Default respostaDefault;
             Fallback respostaFallback;
             PaymentsSummary paymentsSummary = new ();
 
             foreach (var processor in PaymentProcessors)
             {
-                string urlCompleta = $"{processor}admin/payments-summary?from={from}&to={to}";
+                string urlCompleta = $"{processor}?from={from}&to={to}";
 
                 HttpRequestMessage request = new HttpRequestMessageBuilder()
                     .AddUrl(urlCompleta)
@@ -46,8 +46,6 @@ namespace Rinha2025_Api.UseCases
             }
 
             return paymentsSummary;
-
-
 
 
         }
