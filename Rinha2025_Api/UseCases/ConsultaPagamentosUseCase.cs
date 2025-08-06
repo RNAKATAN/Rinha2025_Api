@@ -21,7 +21,7 @@ namespace Rinha2025_Api.UseCases
 
             foreach (var processor in PaymentProcessors)
             {
-                string urlCompleta = $"{processor}?from={from}&to={to}";
+                string urlCompleta = $"{processor}?From={from}&To={to}";
 
                 HttpRequestMessage request = new HttpRequestMessageBuilder()
                     .AddUrl(urlCompleta)
@@ -31,7 +31,7 @@ namespace Rinha2025_Api.UseCases
                     .AddMethod(HttpMethod.Get)
                     .Build();
 
-                if (processor == "http://localhost:8001/")
+                if (processor == $"{Environment.GetEnvironmentVariable("PROCESSOR_DEFAULT_URL_BASE")}/admin/payments-summary")
                 {
                     respostaDefault = (Default) await _httpFacade.ExecutaTarefa(request);
 

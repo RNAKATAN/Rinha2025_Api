@@ -1,6 +1,6 @@
 ﻿namespace Rinha2025_Api.Domain
 {
-    public abstract class PaymentProcessor
+    public  class PaymentProcessor
     {
         public int TotalRequests { get; set; }
 

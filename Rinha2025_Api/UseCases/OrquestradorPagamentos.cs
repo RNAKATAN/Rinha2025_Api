@@ -27,8 +27,8 @@ namespace Rinha2025_Api.UseCases
 
         public async Task Processa(PaymentInput paymentInput)
         {
-            string urlProcessorDefault = $"{Environment.GetEnvironmentVariable("PROCESSOR_DEFAULT_URL")!}/payments";
-            string urlProcessorFallback = $"{Environment.GetEnvironmentVariable("PROCESSOR_FALLBACK_URL")!}/payments";
+            string urlProcessorDefault = $"{Environment.GetEnvironmentVariable("PROCESSOR_DEFAULT_URL_BASE")!}/payments";
+            string urlProcessorFallback = $"{Environment.GetEnvironmentVariable("PROCESSOR_FALLBACK_URL_BASE")!}/payments";
 
             if (!_memoryCache.TryGetValue(Constantes.Constantes.CacheKeyDefaultProcessor, out var result))
             {
@@ -134,8 +134,7 @@ namespace Rinha2025_Api.UseCases
             return new PaymentProcessorInput
             {
                 Amount = paymentInput.Amount,
-                CorrelationId = paymentInput.CorrelationId,
-                RequestedAt = DateTime.UtcNow.ToString()
+                CorrelationId = paymentInput.CorrelationId
             };
         }
     }
